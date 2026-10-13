@@ -1,0 +1,30 @@
+name: Sync upstream
+
+# 上游仓库有更新时，自动同步到本 fork
+# 每 6 小时检查一次；也可在 Actions 页面手动触发
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Sync with upstream
+        run: |
+          git remote add upstream https://github.com/huangxd-/danmu_api.git || true
+          git fetch upstream
+          git checkout main
+          if git merge --ff-only upstream/main; then
+            git push origin main
+            echo "已与上游同步并推送"
+          else
+            echo "上游已分叉，需手动合并"
+            exit 1
+          fi
